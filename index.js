@@ -45,6 +45,11 @@ async function run() {
         res.send(result)
     })
 
+    app.post('/addRecipe',async(req,res)=>{
+        const recipe = req.body 
+        const result = recipesCollection.insertOne(recipe)
+        res.send(result)
+    })
 
 
 
