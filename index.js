@@ -1,6 +1,6 @@
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const express = require("express");
-const cors = require('cors')
+const cors = require("cors");
 const app = express();
 require("dotenv").config();
 const port = process.env.PORT || 4000;
@@ -9,8 +9,7 @@ const port = process.env.PORT || 4000;
 app.use(express.json());
 app.use(cors());
 
-const uri =
-  `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASS}@cluster0.g0ilve4.mongodb.net/?appName=Cluster0`;
+const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASS}@cluster0.g0ilve4.mongodb.net/?appName=Cluster0`;
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -22,48 +21,50 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect();
-    
-    const db = client.db('flavorVault')
-    const recipesCollection = db.collection('recipes')
+    // await client.connect();
 
-    app.get('/recipes',async(req,res)=>{
-        const email = req.query.email 
-        const query = {}
-        if(email){
-            query.recipeMakerEmail= email
-        }
-        const result = await recipesCollection.find(query).toArray()
-        res.send(result)
-    })
+    const db = client.db("flavorVault");
+    const recipesCollection = db.collection("recipes");
 
+    app.get("/recipes", async (req, res) => {
+      const email = req.query.email;
+      const search = req.query.search;
 
-    app.get('/recipes/:id',async(req,res)=>{
-        const id = req.params.id 
-        const query = {_id: new ObjectId(id)}
-        const result = await recipesCollection.findOne(query)
-        res.send(result)
-    })
+      const query = {};
 
-    app.post('/addRecipe',async(req,res)=>{
-        const recipe = req.body 
-        const result = recipesCollection.insertOne(recipe)
-        res.send(result)
-    })
+      if (email) {
+        query.recipeMakerEmail = email;
+      }
 
+      if (search) {
+        query.name = { $regex: search, $options: "i" };
+      }
 
-    app.delete('/deleteRecipe/:id',async(req,res)=>{
-      const id = req.params.id 
-      const query = {_id: new ObjectId(id)}
-      const result = await recipesCollection.deleteOne(query)
-      res.send(result)
-    })
+      const result = await recipesCollection.find(query).toArray();
+      res.send(result);
+    });
 
+    app.get("/recipes/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await recipesCollection.findOne(query);
+      res.send(result);
+    });
 
+    app.post("/addRecipe", async (req, res) => {
+      const recipe = req.body;
+      const result = recipesCollection.insertOne(recipe);
+      res.send(result);
+    });
 
+    app.delete("/deleteRecipe/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await recipesCollection.deleteOne(query);
+      res.send(result);
+    });
 
-
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
